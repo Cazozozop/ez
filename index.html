@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Téléchargement PNG non compressé 16MP avec barre de progression et log détaillé</title>
+  <title>Téléchargement PNG 16MP avec progression simplifiée</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -59,9 +59,15 @@
     summary.textContent = message;
   }
 
+  // Ajoute un message de log en limitant la fréquence
+  let lastLogTime = 0;
   function addLogLine(message) {
-    detailedLog.textContent += message + "\n";
-    detailedLog.scrollTop = detailedLog.scrollHeight;
+    const now = Date.now();
+    if(now - lastLogTime > 500) {
+      detailedLog.textContent += message + "\n";
+      detailedLog.scrollTop = detailedLog.scrollHeight;
+      lastLogTime = now;
+    }
   }
 
   const chunkSize = 1_000_000;
@@ -92,17 +98,17 @@
     let fakeProgress = 0;
     progress.value = 0;
     updateSummary("Encodage de l'image PNG... 0 %");
+    addLogLine("Encodage démarré...");
 
-    // Interval qui simule la progression pendant l'encodage
     const interval = setInterval(() => {
       fakeProgress += 1;
-      if (fakeProgress > 99) fakeProgress = 99; // on n'atteint jamais 100% ici
+      if (fakeProgress > 95) {
+        fakeProgress = 95; // Ne pas spammer au max
+      }
       progress.value = fakeProgress;
       updateSummary(`Encodage de l'image PNG... ${fakeProgress} %`);
-      addLogLine(`Encodage en cours... ${fakeProgress} %`);
-    }, 50);
+    }, 100);
 
-    // On lance l'encodage dans un setTimeout pour pas bloquer UI tout de suite
     setTimeout(() => {
       const img = [buf.buffer];
       const pngData = UPNG.encode(img, size, size, 0);
