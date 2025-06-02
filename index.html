@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image bruit 16MP maximale</title>
+</head>
+<body>
+
+<button onclick="genererImageBruit()">Télécharger image bruit 16MP la plus lourde possible</button>
+
+<script>
+  function genererImageBruit() {
+    const size = 4096; // 4096 x 4096 = 16 MPixels
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.createImageData(size, size);
+    const data = imageData.data;
+
+    // Remplir avec du bruit complètement aléatoire par pixel RGBA
+    // L'alpha toujours à 255 (opaque)
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = Math.floor(Math.random() * 256);     // R
+      data[i + 1] = Math.floor(Math.random() * 256); // G
+      data[i + 2] = Math.floor(Math.random() * 256); // B
+      data[i + 3] = 255;                             // A
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bruit_16mp_couleur.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }
+</script>
+
+</body>
+</html>
