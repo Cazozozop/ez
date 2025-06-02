@@ -1,44 +1,31 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Image bruit 16MP maximale</title>
-</head>
-<body>
+<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 
-<button onclick="genererImageBruit()">Télécharger image bruit 16MP la plus lourde possible</button>
+<button onclick="genererPNGNonCompresse()">Télécharger PNG non compressé 16MP</button>
 
 <script>
-  function genererImageBruit() {
-    const size = 4096; // 4096 x 4096 = 16 MPixels
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    const imageData = ctx.createImageData(size, size);
-    const data = imageData.data;
+  function genererPNGNonCompresse() {
+    const size = 4096;
+    const pixelCount = size * size;
+    // Chaque pixel en RGBA 8 bits => 4 bytes par pixel
+    const buf = new Uint8Array(pixelCount * 4);
 
-    // Remplir avec du bruit complètement aléatoire par pixel RGBA
-    // L'alpha toujours à 255 (opaque)
-    for (let i = 0; i < data.length; i += 4) {
-      data[i] = Math.floor(Math.random() * 256);     // R
-      data[i + 1] = Math.floor(Math.random() * 256); // G
-      data[i + 2] = Math.floor(Math.random() * 256); // B
-      data[i + 3] = 255;                             // A
+    for(let i=0; i < buf.length; i++) {
+      buf[i] = Math.floor(Math.random()*256);
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    // UPNG encode expects frames: array of Uint8Array with pixel data RGBA
+    const img = [buf.buffer];
 
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "bruit_16mp_couleur.png";
-      a.click();
-      URL.revokeObjectURL(url);
-    }, "image/png");
+    // encode image : width, height, frames (1), compression=0 = no compression
+    const pngData = UPNG.encode(img, size, size, 0);
+
+    // Créer un blob et télécharger
+    const blob = new Blob([pngData], {type:"image/png"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "png_16mp_non_compress.png";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 </script>
-
-</body>
-</html>
