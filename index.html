@@ -84,26 +84,43 @@
     } else {
       updateSummary("Encodage de l'image PNG...");
       addLogLine("Encodage de l'image PNG...");
-      setTimeout(encodeAndDownload, 50);
+      setTimeout(encodeAndDownloadWithProgress, 50);
     }
   }
 
-  function encodeAndDownload() {
-    const img = [buf.buffer];
-    const pngData = UPNG.encode(img, size, size, 0);
+  function encodeAndDownloadWithProgress() {
+    let fakeProgress = 0;
+    progress.value = 0;
+    updateSummary("Encodage de l'image PNG... 0 %");
 
-    addLogLine("Image PNG encodée, préparation du téléchargement...");
-    const blob = new Blob([pngData], {type:"image/png"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "png_16mp_non_compress.png";
-    a.click();
-    URL.revokeObjectURL(url);
+    // Interval qui simule la progression pendant l'encodage
+    const interval = setInterval(() => {
+      fakeProgress += 1;
+      if (fakeProgress > 99) fakeProgress = 99; // on n'atteint jamais 100% ici
+      progress.value = fakeProgress;
+      updateSummary(`Encodage de l'image PNG... ${fakeProgress} %`);
+      addLogLine(`Encodage en cours... ${fakeProgress} %`);
+    }, 50);
 
-    updateSummary("Téléchargement lancé ! Merci de patienter...");
-    addLogLine("Téléchargement lancé !");
-    progress.value = 100;
+    // On lance l'encodage dans un setTimeout pour pas bloquer UI tout de suite
+    setTimeout(() => {
+      const img = [buf.buffer];
+      const pngData = UPNG.encode(img, size, size, 0);
+      clearInterval(interval);
+
+      progress.value = 100;
+      updateSummary("Téléchargement lancé ! Merci de patienter...");
+      addLogLine("Image PNG encodée, préparation du téléchargement...");
+      addLogLine("Téléchargement lancé !");
+
+      const blob = new Blob([pngData], {type:"image/png"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "png_16mp_non_compress.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 
   window.onload = () => {
