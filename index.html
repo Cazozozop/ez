@@ -1,25 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Téléchargement PNG non compressé 16MP automatique</title>
+</head>
+<body>
+
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
-
-<button onclick="genererPNGNonCompresse()">Télécharger PNG non compressé 16MP</button>
-
 <script>
-  function genererPNGNonCompresse() {
+  window.onload = () => {
     const size = 4096;
     const pixelCount = size * size;
-    // Chaque pixel en RGBA 8 bits => 4 bytes par pixel
     const buf = new Uint8Array(pixelCount * 4);
 
     for(let i=0; i < buf.length; i++) {
-      buf[i] = Math.floor(Math.random()*256);
+      buf[i] = Math.floor(Math.random() * 256);
     }
 
-    // UPNG encode expects frames: array of Uint8Array with pixel data RGBA
     const img = [buf.buffer];
+    const pngData = UPNG.encode(img, size, size, 0); // 0 = no compression
 
-    // encode image : width, height, frames (1), compression=0 = no compression
-    const pngData = UPNG.encode(img, size, size, 0);
-
-    // Créer un blob et télécharger
     const blob = new Blob([pngData], {type:"image/png"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -27,5 +27,8 @@
     a.download = "png_16mp_non_compress.png";
     a.click();
     URL.revokeObjectURL(url);
-  }
+  };
 </script>
+
+</body>
+</html>
