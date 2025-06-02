@@ -55,18 +55,15 @@
   const summary = document.getElementById("summary");
   const detailedLog = document.getElementById("detailedLog");
 
-  // Fonction pour mettre à jour le résumé (texte en italique)
   function updateSummary(message) {
     summary.textContent = message;
   }
 
-  // Fonction pour ajouter une ligne dans le log détaillé
   function addLogLine(message) {
     detailedLog.textContent += message + "\n";
-    detailedLog.scrollTop = detailedLog.scrollHeight; // scroll vers le bas
+    detailedLog.scrollTop = detailedLog.scrollHeight;
   }
 
-  // Génération par chunk de 1 million de bytes (~250k pixels)
   const chunkSize = 1_000_000;
   let offset = 0;
 
@@ -77,7 +74,6 @@
     }
     offset = end;
 
-    // Mise à jour barre et texte
     const percent = (offset / totalBytes) * 100;
     progress.value = percent;
     updateSummary(`Génération des pixels... ${percent.toFixed(2)} %`);
@@ -88,7 +84,7 @@
     } else {
       updateSummary("Encodage de l'image PNG...");
       addLogLine("Encodage de l'image PNG...");
-      encodeAndDownload();
+      setTimeout(encodeAndDownload, 50);
     }
   }
 
