@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Téléchargement PNG non compressé 16MP avec barre de progression</title>
+  <title>Téléchargement PNG non compressé 16MP avec barre de progression et log détaillé</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,11 +14,26 @@
       height: 25px;
       margin-top: 20px;
     }
-    #log {
+    #summary {
       margin-top: 10px;
       font-style: italic;
       color: #555;
       min-height: 1.2em;
+    }
+    #detailedLog {
+      margin-top: 10px;
+      text-align: left;
+      max-width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      height: 150px;
+      overflow-y: auto;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      color: #222;
     }
   </style>
 </head>
@@ -26,7 +41,8 @@
 
 <h2>Génération d'une image PNG non compressée 16MP</h2>
 <progress id="progress" value="0" max="100"></progress>
-<div id="log">Préparation...</div>
+<div id="summary">Préparation...</div>
+<div id="detailedLog"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script>
@@ -36,15 +52,23 @@
   const buf = new Uint8Array(totalBytes);
 
   const progress = document.getElementById("progress");
-  const log = document.getElementById("log");
+  const summary = document.getElementById("summary");
+  const detailedLog = document.getElementById("detailedLog");
+
+  // Fonction pour mettre à jour le résumé (texte en italique)
+  function updateSummary(message) {
+    summary.textContent = message;
+  }
+
+  // Fonction pour ajouter une ligne dans le log détaillé
+  function addLogLine(message) {
+    detailedLog.textContent += message + "\n";
+    detailedLog.scrollTop = detailedLog.scrollHeight; // scroll vers le bas
+  }
 
   // Génération par chunk de 1 million de bytes (~250k pixels)
   const chunkSize = 1_000_000;
   let offset = 0;
-
-  function updateLog(message) {
-    log.textContent = message;
-  }
 
   function generateChunk() {
     const end = Math.min(offset + chunkSize, totalBytes);
@@ -53,15 +77,17 @@
     }
     offset = end;
 
-    // Mise à jour barre et log
+    // Mise à jour barre et texte
     const percent = (offset / totalBytes) * 100;
     progress.value = percent;
-    updateLog(`Génération des pixels... ${percent.toFixed(2)} %`);
+    updateSummary(`Génération des pixels... ${percent.toFixed(2)} %`);
+    addLogLine(`Génération des pixels... ${percent.toFixed(2)} %`);
 
     if (offset < totalBytes) {
       setTimeout(generateChunk, 0);
     } else {
-      updateLog("Encodage de l'image PNG...");
+      updateSummary("Encodage de l'image PNG...");
+      addLogLine("Encodage de l'image PNG...");
       encodeAndDownload();
     }
   }
@@ -70,6 +96,7 @@
     const img = [buf.buffer];
     const pngData = UPNG.encode(img, size, size, 0);
 
+    addLogLine("Image PNG encodée, préparation du téléchargement...");
     const blob = new Blob([pngData], {type:"image/png"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -78,12 +105,14 @@
     a.click();
     URL.revokeObjectURL(url);
 
-    updateLog("Téléchargement lancé ! Merci de patienter...");
+    updateSummary("Téléchargement lancé ! Merci de patienter...");
+    addLogLine("Téléchargement lancé !");
     progress.value = 100;
   }
 
   window.onload = () => {
-    updateLog("Préparation...");
+    updateSummary("Préparation...");
+    addLogLine("Préparation...");
     generateChunk();
   };
 </script>
