@@ -14,13 +14,19 @@
       height: 25px;
       margin-top: 20px;
     }
+    #log {
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
+      min-height: 1.2em;
+    }
   </style>
 </head>
 <body>
 
 <h2>Génération d'une image PNG non compressée 16MP</h2>
 <progress id="progress" value="0" max="100"></progress>
-<p id="status">Préparation...</p>
+<div id="log">Préparation...</div>
 
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script>
@@ -30,11 +36,15 @@
   const buf = new Uint8Array(totalBytes);
 
   const progress = document.getElementById("progress");
-  const status = document.getElementById("status");
+  const log = document.getElementById("log");
 
   // Génération par chunk de 1 million de bytes (~250k pixels)
   const chunkSize = 1_000_000;
   let offset = 0;
+
+  function updateLog(message) {
+    log.textContent = message;
+  }
 
   function generateChunk() {
     const end = Math.min(offset + chunkSize, totalBytes);
@@ -43,22 +53,20 @@
     }
     offset = end;
 
-    // Mise à jour barre et texte
+    // Mise à jour barre et log
     const percent = (offset / totalBytes) * 100;
     progress.value = percent;
-    status.textContent = `Génération... ${percent.toFixed(2)} %`;
+    updateLog(`Génération des pixels... ${percent.toFixed(2)} %`);
 
     if (offset < totalBytes) {
-      // Laisser le thread respirer
       setTimeout(generateChunk, 0);
     } else {
-      status.textContent = "Encodage de l'image PNG...";
+      updateLog("Encodage de l'image PNG...");
       encodeAndDownload();
     }
   }
 
   function encodeAndDownload() {
-    // Encode PNG non compressé
     const img = [buf.buffer];
     const pngData = UPNG.encode(img, size, size, 0);
 
@@ -70,12 +78,12 @@
     a.click();
     URL.revokeObjectURL(url);
 
-    status.textContent = "Téléchargement lancé ! Merci de patienter...";
+    updateLog("Téléchargement lancé ! Merci de patienter...");
     progress.value = 100;
   }
 
-  // Démarrer la génération au chargement
   window.onload = () => {
+    updateLog("Préparation...");
     generateChunk();
   };
 </script>
