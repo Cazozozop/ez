@@ -2,23 +2,65 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Téléchargement PNG non compressé 16MP automatique</title>
+  <title>Téléchargement PNG non compressé 16MP avec barre de progression</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      text-align: center;
+    }
+    #progress {
+      width: 80%;
+      height: 25px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
 
+<h2>Génération d'une image PNG non compressée 16MP</h2>
+<progress id="progress" value="0" max="100"></progress>
+<p id="status">Préparation...</p>
+
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script>
-  window.onload = () => {
-    const size = 4096;
-    const pixelCount = size * size;
-    const buf = new Uint8Array(pixelCount * 4);
+  const size = 4096;
+  const pixelCount = size * size;
+  const totalBytes = pixelCount * 4;
+  const buf = new Uint8Array(totalBytes);
 
-    for(let i=0; i < buf.length; i++) {
+  const progress = document.getElementById("progress");
+  const status = document.getElementById("status");
+
+  // Génération par chunk de 1 million de bytes (~250k pixels)
+  const chunkSize = 1_000_000;
+  let offset = 0;
+
+  function generateChunk() {
+    const end = Math.min(offset + chunkSize, totalBytes);
+    for(let i = offset; i < end; i++) {
       buf[i] = Math.floor(Math.random() * 256);
     }
+    offset = end;
 
+    // Mise à jour barre et texte
+    const percent = (offset / totalBytes) * 100;
+    progress.value = percent;
+    status.textContent = `Génération... ${percent.toFixed(2)} %`;
+
+    if (offset < totalBytes) {
+      // Laisser le thread respirer
+      setTimeout(generateChunk, 0);
+    } else {
+      status.textContent = "Encodage de l'image PNG...";
+      encodeAndDownload();
+    }
+  }
+
+  function encodeAndDownload() {
+    // Encode PNG non compressé
     const img = [buf.buffer];
-    const pngData = UPNG.encode(img, size, size, 0); // 0 = no compression
+    const pngData = UPNG.encode(img, size, size, 0);
 
     const blob = new Blob([pngData], {type:"image/png"});
     const url = URL.createObjectURL(blob);
@@ -27,6 +69,14 @@
     a.download = "png_16mp_non_compress.png";
     a.click();
     URL.revokeObjectURL(url);
+
+    status.textContent = "Téléchargement lancé ! Merci de patienter...";
+    progress.value = 100;
+  }
+
+  // Démarrer la génération au chargement
+  window.onload = () => {
+    generateChunk();
   };
 </script>
 
